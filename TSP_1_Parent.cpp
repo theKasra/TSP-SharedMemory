@@ -7,12 +7,6 @@
 #include <string>
 #include <thread>
 
-
-struct PathInfo {
-    std::vector<int> path;
-    int cost;
-};
-
 void PrintAnswer(int*, int*, int, int);
 int GetTotalNumberOfCities(unsigned int);
 void ReadInputFile(std::string, int, char, int*);
@@ -277,17 +271,13 @@ void PrintAnswer(int* CostsBuf, int* PathsBuf, int cores, int cities)
         }
     }
 
-    int* final_path = new int[cities + 1];
     int p = m * (cities + 1);
     std::cout << "\nPath: ";
     for (int j = 0; j < cities + 1; j++)
     {
-        final_path[j] = PathsBuf[p];
-        std::cout << final_path[j];
-        if (j < cities) std::cout << "->";
+        std::cout << PathsBuf[p];
+        if (j < cities) std::cout << " -> ";
         p++;
     }
     std::cout << "\nCost: " << final_cost << std::endl;
-
-    delete[] final_path;
 }

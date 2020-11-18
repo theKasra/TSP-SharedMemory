@@ -12,7 +12,6 @@ struct PathInfo {
 
 void TSP_RandomPaths(int*, int*, int*, int*);
 int FindCost(int*, int, int, int);
-PathInfo FindBestAnswer(std::vector<PathInfo>);
 
 int main()
 {
@@ -89,17 +88,17 @@ void TSP_RandomPaths(int* InputParamsBuf, int* FileInputBuf, int* PathsBuf, int*
     int rand_max = cities - 1;
 
     std::vector<int> visited;
-    std::vector<PathInfo> temp_answers;
 
     visited.push_back(curr_city);
 
     srand(time(NULL) + process_id);
     int Time = time(NULL);
 
-    while (time(NULL) - Time != InputParamsBuf[0])
+    PathInfo answer;
+    int loop_counter = 0;
+
+    while (time(NULL) - Time < InputParamsBuf[0])
     {
-        PathInfo answer;
-        
         // continue making cycles or stop
         if (visited.size() < cities)
             travel_to = ((rand() % rand_max - rand_min + 1) + rand_min);
@@ -118,9 +117,18 @@ void TSP_RandomPaths(int* InputParamsBuf, int* FileInputBuf, int* PathsBuf, int*
         // found a hamiltonian cycle
         if (curr_cost != 0 && visited.size() == cities + 1)
         {
-            answer.path = visited;
-            answer.cost = curr_cost;
-            temp_answers.push_back(answer);
+            if (loop_counter == 0)
+            {
+                answer.path = visited;
+                answer.cost = curr_cost;
+                loop_counter++;
+            }
+
+            else if (curr_cost < answer.cost)
+            {
+                answer.path = visited;
+                answer.cost = curr_cost;
+            }
 
             // prepare for finding another path
             visited.clear();
@@ -134,21 +142,19 @@ void TSP_RandomPaths(int* InputParamsBuf, int* FileInputBuf, int* PathsBuf, int*
         curr_city = travel_to;
     }
 
-    PathInfo best_temp = FindBestAnswer(temp_answers);
-
     for (int i = 0; i < InputParamsBuf[1] * (cities + 1); i++)
     {
         if (PathsBuf[i] == process_id)
         {
-            for (int j = 0; j < best_temp.path.size(); j++)
+            for (int j = 0; j < answer.path.size(); j++)
             {
-                PathsBuf[i + j] = best_temp.path[j];
+                PathsBuf[i + j] = answer.path[j];
             }
         }
 
         if (CostsBuf[i / (cities + 1)] == process_id)
         {
-            CostsBuf[i / (cities + 1)] = best_temp.cost;
+            CostsBuf[i / (cities + 1)] = answer.cost;
         }
     }
 }
@@ -156,16 +162,4 @@ int FindCost(int* FileInputBuf, int curr_city, int travel_to, int cities)
 {
     int target = (curr_city * cities) + travel_to;
     return FileInputBuf[target];
-}
-PathInfo FindBestAnswer(std::vector<PathInfo> answers)
-{
-    PathInfo best_answer = answers[0];
-    for (int i = 0; i < answers.size(); i++)
-    {
-        if (answers[i].cost < best_answer.cost)
-        {
-            best_answer = answers[i];
-        }
-    }
-    return best_answer;
 }
